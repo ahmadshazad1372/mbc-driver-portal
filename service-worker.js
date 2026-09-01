@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mbc-driver-portal-v2';
+const CACHE_NAME = 'mbc-driver-portal-v3';
 const ASSETS = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
