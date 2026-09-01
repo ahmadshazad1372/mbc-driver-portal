@@ -1,5 +1,5 @@
-const CACHE_NAME = 'mbc-driver-portal-v1';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'mbc-driver-portal-v2';
+const ASSETS = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -18,8 +18,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = event.request.url;
+
   // Never cache calls to the Google Apps Script API — always go to network
-  if (event.request.url.includes('script.google.com')) return;
+  if (url.includes('script.google.com') || url.includes('googleusercontent.com')) return;
+
+  // App shell (index.html) — ALWAYS try the network first so updates show
+  // immediately; only fall back to cache if the device is offline.
+  if (event.request.mode === 'navigate' || url.endsWith('/') || url.endsWith('index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, res.clone()));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Icons/manifest — cache-first is fine, they rarely change
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
