@@ -96,8 +96,11 @@
     width:100%; padding:14px; border:none; border-radius:12px; margin-top:6px;
     background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#FBEFF1;
     font-size:14.5px; font-weight:700; cursor:pointer; letter-spacing:.2px;
+    transition: opacity .25s, filter .25s;
     box-shadow: 0 10px 24px -8px rgba(166,27,52,0.45);
   }
+  .primary-btn.dimmable{ opacity:.5; filter:saturate(.5) brightness(.85); }
+  .primary-btn.dimmable.ready{ opacity:1; filter:none; }
   .primary-btn:active{ transform: translateY(1px); }
 
   .hint{ font-size:11.5px; color:var(--muted); margin-top:14px; line-height:1.6; text-align:center; }
@@ -131,6 +134,22 @@
     50%{ box-shadow: 0 10px 30px -6px rgba(166,27,52,0.7), 0 0 0 8px rgba(166,27,52,0); }
   }
   .primary-btn.ready{ animation: readyPulse 1.4s ease-in-out infinite; }
+
+  .loader-wrap{ margin-top:10px; }
+  .loader-track{
+    width:100%; height:4px; border-radius:999px; overflow:hidden; position:relative;
+    background:rgba(255,255,255,0.08); margin-top:8px;
+  }
+  .loader-dot{
+    position:absolute; top:0; height:100%; width:32%; border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-dark));
+    animation: loaderSlide 1.1s ease-in-out infinite;
+  }
+  @keyframes loaderSlide{
+    0%{ left:-32%; }
+    50%{ left:68%; }
+    100%{ left:-32%; }
+  }
 
   .photo-row{ display:flex; gap:10px; justify-content:center; margin-bottom:8px; cursor:pointer; }
   .photo-slot{
@@ -215,8 +234,12 @@
       <div class="field"><label id="lblMobile">WhatsApp Number (Saudi)</label><input id="mobileInput" type="tel" placeholder="05XXXXXXXX"></div>
       <div class="field"><label id="lblMobileConfirm">Re-enter WhatsApp Number</label><input id="mobileConfirmInput" type="tel" placeholder="05XXXXXXXX"></div>
 
-      <button class="primary-btn" id="submitBtn" onclick="trySubmit()">Save details</button>
+      <button class="primary-btn dimmable" id="submitBtn" onclick="trySubmit()">Save details</button>
       <p class="err" id="regErrMsg"></p>
+      <div class="loader-wrap hidden" id="loaderWrap">
+        <p class="hint" id="uploadingText" style="margin-top:0;">Submitting...</p>
+        <div class="loader-track"><div class="loader-dot"></div></div>
+      </div>
     </div>
 
     <!-- SUCCESS SCREEN -->
@@ -242,11 +265,11 @@ const LANGS = [
   {code:'hi', label:'हिं', rtl:false},
 ];
 const T = {
-  en:{appName:"MBC Driver Portal",tagline:"Verified access for Modern Bus Company drivers",loginTitle:"Sign in",empId:"Employee ID",empIdPh:"Ex.11410",empIdConfirm:"Re-enter Employee ID",loginBtn:"Continue",loginHint:"Only Employee IDs registered by MBC can sign in.",welcomeDear:"Welcome, Dear {name}",step2Sub:"This information is saved against Employee ID {id}",photoLabel:"Attach up to 3 photos",email:"Email address",emailConfirm:"Re-enter email address",mobile:"WhatsApp Number (Saudi)",mobileConfirm:"Re-enter WhatsApp Number",submit:"Save details",footer:"Modern Bus Company · Makkah",errNotFound:"Please check your Employee ID — this ID does not look correct.",errMismatch:"The two Employee ID entries do not match.",errEmailMismatch:"The two email addresses do not match. Please check and try again.",errMobileMismatch:"The two WhatsApp numbers do not match. Please check and try again.",errMobileLength:"Please enter a valid WhatsApp number — it looks too short.",savedMsg:"Saved successfully.",backLabel:"Back",exitLabel:"Exit",successTitle:"Submitted!",successSub:"Your details have been saved. Tap Exit and sign in again to submit for another driver."},
-  ur:{appName:"ایم بی سی ڈرائیور پورٹل",tagline:"ماڈرن بس کمپنی کے ڈرائیورز کے لیے تصدیق شدہ رسائی",loginTitle:"لاگ ان کریں",empId:"ایمپلائی آئی ڈی",empIdPh:"Ex.11410",empIdConfirm:"ایمپلائی آئی ڈی دوبارہ درج کریں",loginBtn:"جاری رکھیں",loginHint:"صرف وہ ایمپلائی آئی ڈی جو MBC نے رجسٹر کی ہیں لاگ ان کر سکتی ہیں۔",welcomeDear:"خوش آمدید، پیارے {name}",step2Sub:"یہ معلومات ایمپلائی آئی ڈی {id} کے ساتھ محفوظ ہوں گی",photoLabel:"زیادہ سے زیادہ 3 تصاویر منسلک کریں",email:"ای میل ایڈریس",emailConfirm:"ای میل دوبارہ درج کریں",mobile:"واٹس ایپ نمبر (سعودی)",mobileConfirm:"واٹس ایپ نمبر دوبارہ درج کریں",submit:"تفصیلات محفوظ کریں",footer:"ماڈرن بس کمپنی · مکہ",errNotFound:"اپنی آئی ڈی پر غور کریں، یہ آئی ڈی غلط لگ رہی ہے۔",errMismatch:"دونوں دفعہ درج کی گئی آئی ڈی ایک جیسی نہیں ہیں۔",errEmailMismatch:"آپ کی ای میل میچ نہیں ہو رہی، دوبارہ چیک کریں۔",errMobileMismatch:"آپ کا نمبر میچ نہیں ہو رہا، دوبارہ چیک کریں۔",errMobileLength:"درست واٹس ایپ نمبر درج کریں، یہ نمبر بہت مختصر لگ رہا ہے۔",savedMsg:"کامیابی سے محفوظ ہو گیا۔",backLabel:"پیچھے",exitLabel:"باہر نکلیں",successTitle:"جمع ہو گیا!",successSub:"آپ کی تفصیلات محفوظ ہو گئی ہیں۔ دوبارہ جمع کروانے کے لیے Exit دبائیں اور دوبارہ لاگ ان کریں۔"},
-  ar:{appName:"بوابة سائقي إم بي سي",tagline:"دخول موثّق لسائقي شركة الحافلات الحديثة",loginTitle:"تسجيل الدخول",empId:"رقم الموظف",empIdPh:"Ex.11410",empIdConfirm:"أعد إدخال رقم الموظف",loginBtn:"متابعة",loginHint:"يمكن فقط لأرقام الموظفين المسجّلة لدى الشركة تسجيل الدخول.",welcomeDear:"أهلاً وسهلاً، عزيزي {name}",step2Sub:"سيتم حفظ هذه المعلومات مع رقم الموظف {id}",photoLabel:"أرفق حتى 3 صور",email:"البريد الإلكتروني",emailConfirm:"أعد إدخال البريد الإلكتروني",mobile:"رقم واتساب (السعودية)",mobileConfirm:"أعد إدخال رقم واتساب",submit:"حفظ البيانات",footer:"شركة الحافلات الحديثة · مكة",errNotFound:"يرجى مراجعة رقم موظفك، هذا الرقم يبدو غير صحيح.",errMismatch:"رقما الموظف المدخلان غير متطابقين.",errEmailMismatch:"البريدان الإلكترونيان غير متطابقين، يرجى التحقق مرة أخرى.",errMobileMismatch:"رقما واتساب غير متطابقين، يرجى التحقق مرة أخرى.",errMobileLength:"يرجى إدخال رقم واتساب صحيح، الرقم يبدو قصيراً جداً.",savedMsg:"تم الحفظ بنجاح.",backLabel:"رجوع",exitLabel:"خروج",successTitle:"تم الإرسال!",successSub:"تم حفظ بياناتك. اضغط خروج وسجّل الدخول مرة أخرى للإرسال مجددًا."},
-  id:{appName:"Portal Sopir MBC",tagline:"Akses terverifikasi untuk sopir Modern Bus Company",loginTitle:"Masuk",empId:"ID Karyawan",empIdPh:"Ex.11410",empIdConfirm:"Masukkan ulang ID Karyawan",loginBtn:"Lanjutkan",loginHint:"Hanya ID Karyawan yang terdaftar di MBC yang bisa masuk.",welcomeDear:"Selamat datang, {name}",step2Sub:"Informasi ini disimpan untuk ID Karyawan {id}",photoLabel:"Lampirkan hingga 3 foto",email:"Alamat email",emailConfirm:"Masukkan ulang email",mobile:"Nomor WhatsApp (Saudi)",mobileConfirm:"Masukkan ulang nomor WhatsApp",submit:"Simpan data",footer:"Modern Bus Company · Makkah",errNotFound:"Silakan periksa kembali ID Karyawan Anda, ID ini tampaknya salah.",errMismatch:"Kedua ID Karyawan yang dimasukkan tidak cocok.",errEmailMismatch:"Kedua alamat email tidak cocok. Silakan periksa kembali.",errMobileMismatch:"Kedua nomor WhatsApp tidak cocok. Silakan periksa kembali.",errMobileLength:"Masukkan nomor WhatsApp yang valid, nomor ini tampak terlalu pendek.",savedMsg:"Berhasil disimpan.",backLabel:"Kembali",exitLabel:"Keluar",successTitle:"Berhasil dikirim!",successSub:"Data Anda telah disimpan. Tekan Keluar dan masuk lagi untuk mengirim data baru."},
-  hi:{appName:"एमबीसी ड्राइवर पोर्टल",tagline:"मॉडर्न बस कंपनी के ड्राइवरों के लिए सत्यापित पहुंच",loginTitle:"साइन इन करें",empId:"कर्मचारी आईडी",empIdPh:"Ex.11410",empIdConfirm:"कर्मचारी आईडी दोबारा दर्ज करें",loginBtn:"जारी रखें",loginHint:"केवल MBC में दर्ज कर्मचारी आईडी ही साइन इन कर सकती हैं।",welcomeDear:"स्वागत है, प्रिय {name}",step2Sub:"यह जानकारी कर्मचारी आईडी {id} के साथ सहेजी जाएगी",photoLabel:"अधिकतम 3 फ़ोटो अटैच करें",email:"ईमेल पता",emailConfirm:"ईमेल दोबारा दर्ज करें",mobile:"व्हाट्सएप नंबर (सऊदी)",mobileConfirm:"व्हाट्सएप नंबर दोबारा दर्ज करें",submit:"जानकारी सहेजें",footer:"मॉडर्न बस कंपनी · मक्का",errNotFound:"अपनी कर्मचारी आईडी दोबारा देखें, यह आईडी गलत लग रही है।",errMismatch:"दर्ज की गई दोनों आईडी मेल नहीं खातीं।",errEmailMismatch:"आपका ईमेल मेल नहीं खा रहा, दोबारा जांचें।",errMobileMismatch:"आपका नंबर मेल नहीं खा रहा, दोबारा जांचें।",errMobileLength:"कृपया सही व्हाट्सएप नंबर दर्ज करें, यह नंबर बहुत छोटा लग रहा है।",savedMsg:"सफलतापूर्वक सहेजा गया।",backLabel:"वापस",exitLabel:"बाहर निकलें",successTitle:"सबमिट हो गया!",successSub:"आपकी जानकारी सहेज ली गई है। दोबारा सबमिट करने के लिए Exit दबाएं और फिर से लॉगिन करें।"},
+  en:{appName:"MBC Driver Portal",tagline:"Verified access for Modern Bus Company drivers",loginTitle:"Sign in",empId:"Employee ID",empIdPh:"Ex.11410",empIdConfirm:"Re-enter Employee ID",loginBtn:"Continue",loginHint:"Only Employee IDs registered by MBC can sign in.",welcomeDear:"Welcome, Dear {name}",step2Sub:"This information is saved against Employee ID {id}",photoLabel:"Attach up to 3 photos",email:"Email address",emailConfirm:"Re-enter email address",mobile:"WhatsApp Number (Saudi)",mobileConfirm:"Re-enter WhatsApp Number",submit:"Save details",footer:"Modern Bus Company · Makkah",errNotFound:"Please check your Employee ID — this ID does not look correct.",errMismatch:"The two Employee ID entries do not match.",errEmailMismatch:"The two email addresses do not match. Please check and try again.",errMobileMismatch:"The two WhatsApp numbers do not match. Please check and try again.",errMobileLength:"Please enter a valid WhatsApp number — it looks too short.",savedMsg:"Saved successfully.",backLabel:"Back",exitLabel:"Exit",successTitle:"Submitted!",successSub:"Your details have been saved. Tap Exit and sign in again to submit for another driver.",uploadingMsg:"Submitting..."},
+  ur:{appName:"ایم بی سی ڈرائیور پورٹل",tagline:"ماڈرن بس کمپنی کے ڈرائیورز کے لیے تصدیق شدہ رسائی",loginTitle:"لاگ ان کریں",empId:"ایمپلائی آئی ڈی",empIdPh:"Ex.11410",empIdConfirm:"ایمپلائی آئی ڈی دوبارہ درج کریں",loginBtn:"جاری رکھیں",loginHint:"صرف وہ ایمپلائی آئی ڈی جو MBC نے رجسٹر کی ہیں لاگ ان کر سکتی ہیں۔",welcomeDear:"خوش آمدید، پیارے {name}",step2Sub:"یہ معلومات ایمپلائی آئی ڈی {id} کے ساتھ محفوظ ہوں گی",photoLabel:"زیادہ سے زیادہ 3 تصاویر منسلک کریں",email:"ای میل ایڈریس",emailConfirm:"ای میل دوبارہ درج کریں",mobile:"واٹس ایپ نمبر (سعودی)",mobileConfirm:"واٹس ایپ نمبر دوبارہ درج کریں",submit:"تفصیلات محفوظ کریں",footer:"ماڈرن بس کمپنی · مکہ",errNotFound:"اپنی آئی ڈی پر غور کریں، یہ آئی ڈی غلط لگ رہی ہے۔",errMismatch:"دونوں دفعہ درج کی گئی آئی ڈی ایک جیسی نہیں ہیں۔",errEmailMismatch:"آپ کی ای میل میچ نہیں ہو رہی، دوبارہ چیک کریں۔",errMobileMismatch:"آپ کا نمبر میچ نہیں ہو رہا، دوبارہ چیک کریں۔",errMobileLength:"درست واٹس ایپ نمبر درج کریں، یہ نمبر بہت مختصر لگ رہا ہے۔",savedMsg:"کامیابی سے محفوظ ہو گیا۔",backLabel:"پیچھے",exitLabel:"باہر نکلیں",successTitle:"جمع ہو گیا!",successSub:"آپ کی تفصیلات محفوظ ہو گئی ہیں۔ دوبارہ جمع کروانے کے لیے Exit دبائیں اور دوبارہ لاگ ان کریں۔",uploadingMsg:"جمع ہو رہا ہے۔۔۔"},
+  ar:{appName:"بوابة سائقي إم بي سي",tagline:"دخول موثّق لسائقي شركة الحافلات الحديثة",loginTitle:"تسجيل الدخول",empId:"رقم الموظف",empIdPh:"Ex.11410",empIdConfirm:"أعد إدخال رقم الموظف",loginBtn:"متابعة",loginHint:"يمكن فقط لأرقام الموظفين المسجّلة لدى الشركة تسجيل الدخول.",welcomeDear:"أهلاً وسهلاً، عزيزي {name}",step2Sub:"سيتم حفظ هذه المعلومات مع رقم الموظف {id}",photoLabel:"أرفق حتى 3 صور",email:"البريد الإلكتروني",emailConfirm:"أعد إدخال البريد الإلكتروني",mobile:"رقم واتساب (السعودية)",mobileConfirm:"أعد إدخال رقم واتساب",submit:"حفظ البيانات",footer:"شركة الحافلات الحديثة · مكة",errNotFound:"يرجى مراجعة رقم موظفك، هذا الرقم يبدو غير صحيح.",errMismatch:"رقما الموظف المدخلان غير متطابقين.",errEmailMismatch:"البريدان الإلكترونيان غير متطابقين، يرجى التحقق مرة أخرى.",errMobileMismatch:"رقما واتساب غير متطابقين، يرجى التحقق مرة أخرى.",errMobileLength:"يرجى إدخال رقم واتساب صحيح، الرقم يبدو قصيراً جداً.",savedMsg:"تم الحفظ بنجاح.",backLabel:"رجوع",exitLabel:"خروج",successTitle:"تم الإرسال!",successSub:"تم حفظ بياناتك. اضغط خروج وسجّل الدخول مرة أخرى للإرسال مجددًا.",uploadingMsg:"جارٍ الإرسال..."},
+  id:{appName:"Portal Sopir MBC",tagline:"Akses terverifikasi untuk sopir Modern Bus Company",loginTitle:"Masuk",empId:"ID Karyawan",empIdPh:"Ex.11410",empIdConfirm:"Masukkan ulang ID Karyawan",loginBtn:"Lanjutkan",loginHint:"Hanya ID Karyawan yang terdaftar di MBC yang bisa masuk.",welcomeDear:"Selamat datang, {name}",step2Sub:"Informasi ini disimpan untuk ID Karyawan {id}",photoLabel:"Lampirkan hingga 3 foto",email:"Alamat email",emailConfirm:"Masukkan ulang email",mobile:"Nomor WhatsApp (Saudi)",mobileConfirm:"Masukkan ulang nomor WhatsApp",submit:"Simpan data",footer:"Modern Bus Company · Makkah",errNotFound:"Silakan periksa kembali ID Karyawan Anda, ID ini tampaknya salah.",errMismatch:"Kedua ID Karyawan yang dimasukkan tidak cocok.",errEmailMismatch:"Kedua alamat email tidak cocok. Silakan periksa kembali.",errMobileMismatch:"Kedua nomor WhatsApp tidak cocok. Silakan periksa kembali.",errMobileLength:"Masukkan nomor WhatsApp yang valid, nomor ini tampak terlalu pendek.",savedMsg:"Berhasil disimpan.",backLabel:"Kembali",exitLabel:"Keluar",successTitle:"Berhasil dikirim!",successSub:"Data Anda telah disimpan. Tekan Keluar dan masuk lagi untuk mengirim data baru.",uploadingMsg:"Mengirim..."},
+  hi:{appName:"एमबीसी ड्राइवर पोर्टल",tagline:"मॉडर्न बस कंपनी के ड्राइवरों के लिए सत्यापित पहुंच",loginTitle:"साइन इन करें",empId:"कर्मचारी आईडी",empIdPh:"Ex.11410",empIdConfirm:"कर्मचारी आईडी दोबारा दर्ज करें",loginBtn:"जारी रखें",loginHint:"केवल MBC में दर्ज कर्मचारी आईडी ही साइन इन कर सकती हैं।",welcomeDear:"स्वागत है, प्रिय {name}",step2Sub:"यह जानकारी कर्मचारी आईडी {id} के साथ सहेजी जाएगी",photoLabel:"अधिकतम 3 फ़ोटो अटैच करें",email:"ईमेल पता",emailConfirm:"ईमेल दोबारा दर्ज करें",mobile:"व्हाट्सएप नंबर (सऊदी)",mobileConfirm:"व्हाट्सएप नंबर दोबारा दर्ज करें",submit:"जानकारी सहेजें",footer:"मॉडर्न बस कंपनी · मक्का",errNotFound:"अपनी कर्मचारी आईडी दोबारा देखें, यह आईडी गलत लग रही है।",errMismatch:"दर्ज की गई दोनों आईडी मेल नहीं खातीं।",errEmailMismatch:"आपका ईमेल मेल नहीं खा रहा, दोबारा जांचें।",errMobileMismatch:"आपका नंबर मेल नहीं खा रहा, दोबारा जांचें।",errMobileLength:"कृपया सही व्हाट्सएप नंबर दर्ज करें, यह नंबर बहुत छोटा लग रहा है।",savedMsg:"सफलतापूर्वक सहेजा गया।",backLabel:"वापस",exitLabel:"बाहर निकलें",successTitle:"सबमिट हो गया!",successSub:"आपकी जानकारी सहेज ली गई है। दोबारा सबमिट करने के लिए Exit दबाएं और फिर से लॉगिन करें।",uploadingMsg:"सबमिट हो रहा है..."},
 };
 // Your deployed Apps Script Web App URL
 const API_URL = 'https://script.google.com/macros/s/AKfycbxJJ_BIOp4RffNmyJ9pS4IT8xKfi4ijHlPuGoWUxla8M7_rdPsrFobkf1Zd55U9UIrl/exec';
@@ -314,6 +337,7 @@ function setLang(code){
   document.getElementById('exitLabel2').textContent=t.exitLabel;
   document.getElementById('successTitle').textContent=t.successTitle;
   document.getElementById('successSub').textContent=t.successSub;
+  document.getElementById('uploadingText').textContent=t.uploadingMsg;
   buildLangBar();
 }
 function onPhotosChosen(ev){
@@ -367,6 +391,7 @@ function resetApp(){
   });
   document.getElementById('errMsg').style.display='none';
   document.getElementById('regErrMsg').style.display='none';
+  document.getElementById('loaderWrap').classList.add('hidden');
   document.getElementById('submitBtn').classList.remove('ready');
   currentDriverName='';
 }
@@ -413,7 +438,9 @@ async function trySubmit(){
   if(mobile!==mobile2){ errEl.style.color='var(--danger)'; errEl.textContent=t.errMobileMismatch; errEl.style.display='block'; return; }
   if(normalizeDigits(mobile).length<MIN_MOBILE_DIGITS){ errEl.style.color='var(--danger)'; errEl.textContent=t.errMobileLength; errEl.style.display='block'; return; }
   const originalLabel=btn.textContent;
-  btn.textContent='...'; btn.disabled=true;
+  btn.disabled=true;
+  errEl.style.display='none';
+  document.getElementById('loaderWrap').classList.remove('hidden');
   const photos = photosBase64.map((b,i)=> b ? {data:b, mime:photosMime[i]} : null).filter(Boolean);
   try{
     const res = await fetch(API_URL, {
@@ -423,12 +450,15 @@ async function trySubmit(){
     });
     const data = await res.json();
     if(data.success){
+      document.getElementById('loaderWrap').classList.add('hidden');
       document.getElementById('registerView').classList.add('hidden');
       document.getElementById('successView').classList.remove('hidden');
     }else{
+      document.getElementById('loaderWrap').classList.add('hidden');
       errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
     }
   }catch(err){
+    document.getElementById('loaderWrap').classList.add('hidden');
     errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
   }finally{
     btn.textContent=originalLabel; btn.disabled=false;
