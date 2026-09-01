@@ -1,6 +1,6 @@
 {
-  "name": "MBC Driver Portal",
-  "short_name": "MBC Driver",
+  "name": "MBC Captain Portal",
+  "short_name": "MBC Captain",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
