@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>MBC Driver Portal — Midnight Transit</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0E1315">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MBC Driver">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Noto+Nastaliq+Urdu:wght@500;700&family=Noto+Naskh+Arabic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#0E1315; --bg2:#1A2325;
+    --glass: rgba(255,255,255,0.045);
+    --glass-brd: rgba(255,255,255,0.10);
+    --accent:#2DD4BF; --accent-soft: rgba(45,212,191,0.16);
+    --text:#E7F3F1; --muted:#7E9490; --danger:#FF7A7A; --ok:#2DD4BF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at 50% -10%, #17302d 0%, var(--bg1) 45%, var(--bg2) 100%);
+    font-family:'Inter',sans-serif; color:var(--text); padding:24px 12px;
+  }
+  h1, .card-title{ font-family:'Space Grotesk', sans-serif; }
+  .routeline{
+    height:26px; margin:0 0 -6px; position:relative; z-index:2;
+    background-image: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 20px);
+    background-size: 20px 2px; background-repeat:no-repeat; background-position: 26px 13px;
+    opacity:.55;
+  }
+  .routeline::before, .routeline::after{
+    content:""; position:absolute; top:6px; width:8px; height:8px; border-radius:50%; background:var(--accent);
+  }
+  .routeline::before{ left:20px; } .routeline::after{ right:20px; }
+  .phone{
+    width:390px; max-width:100%; border-radius:34px; padding:6px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  .screen{
+    border-radius:30px; overflow:hidden; min-height:720px;
+    background: var(--glass);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border:1px solid var(--glass-brd);
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .screen::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(500px 200px at 80% -10%, var(--accent-soft), transparent 60%);
+  }
+  .langbar{
+    display:flex; gap:6px; padding:16px 16px 0; position:relative; z-index:2; flex-wrap:wrap;
+  }
+  .lang-btn{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; letter-spacing:.2px;
+    padding:6px 12px; border-radius:999px; border:1px solid var(--glass-brd);
+    background:rgba(255,255,255,0.04); color:var(--muted); cursor:pointer;
+  }
+  .lang-btn.active{ background:var(--accent); color:#0C1220; border-color:var(--accent); }
+
+  .content{ padding:28px 26px 20px; position:relative; z-index:2; flex:1; display:flex; flex-direction:column; }
+  .brandrow{ display:flex; align-items:center; gap:12px; margin-bottom:26px; }
+  .logo{
+    width:44px; height:44px; border-radius:13px; flex:none;
+    background: linear-gradient(135deg, var(--accent), #1B8F80);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:#052620;
+    box-shadow: 0 8px 20px -6px rgba(45,212,191,0.5);
+  }
+  h1{ font-size:19px; margin:0; font-weight:700; letter-spacing:.1px; }
+  .tagline{ margin:2px 0 0; font-size:12.5px; color:var(--muted); line-height:1.4; }
+
+  .card-title{ font-size:15px; font-weight:700; margin:0 0 4px; }
+  .card-sub{ font-size:12.5px; color:var(--muted); margin:0 0 22px; line-height:1.5; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px; }
+  .field input{
+    width:100%; padding:13px 14px; border-radius:12px; border:1px solid var(--glass-brd);
+    background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; font-family:inherit;
+    outline:none; transition:border-color .15s;
+  }
+  .field input:focus{ border-color:var(--accent); background:rgba(255,255,255,0.08); }
+  .field input::placeholder{ color:#6B7994; }
+
+  .primary-btn{
+    width:100%; padding:14px; border:none; border-radius:12px; margin-top:6px;
+    background:linear-gradient(135deg, var(--accent), #1B8F80); color:#052620;
+    font-size:14.5px; font-weight:700; cursor:pointer; letter-spacing:.2px;
+    box-shadow: 0 10px 24px -8px rgba(45,212,191,0.45);
+  }
+  .primary-btn:active{ transform: translateY(1px); }
+
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:14px; line-height:1.6; text-align:center; }
+  .err{ font-size:12px; color:var(--danger); margin-top:10px; display:none; font-weight:600; }
+
+  .photo-wrap{ display:flex; flex-direction:column; align-items:center; margin-bottom:22px; }
+  .photo-circle{
+    width:88px; height:88px; border-radius:50%; border:1.5px dashed var(--glass-brd);
+    background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center;
+    font-size:26px; color:var(--muted); cursor:pointer; margin-bottom:8px;
+  }
+  .photo-cap{ font-size:11.5px; color:var(--muted); }
+
+  .id-chip{
+    display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600;
+    background:var(--accent-soft); color:var(--accent); padding:5px 10px; border-radius:999px; margin-bottom:18px;
+    width:fit-content;
+  }
+
+  footer{ text-align:center; font-size:10.5px; color:#5C6780; padding:14px 0 20px; position:relative; z-index:2; }
+
+  [dir="rtl"] .field label{ text-align:right; }
+  [dir="rtl"] .brandrow{ flex-direction:row-reverse; }
+  [dir="rtl"] .id-chip{ flex-direction:row-reverse; }
+  .rtl-font{ font-family:'Noto Naskh Arabic','Noto Nastaliq Urdu',serif; }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="phone"><div class="screen" id="screen" dir="ltr">
+  <div class="routeline"></div>
+  <div class="langbar" id="langbar"></div>
+
+  <div class="content">
+    <div class="brandrow">
+      <div class="logo">M</div>
+      <div>
+        <h1 id="appName">MBC Driver Portal</h1>
+        <p class="tagline" id="tagline">Verified access for Modern Bus Company drivers</p>
+      </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginView">
+      <p class="card-title" id="loginTitle">Sign in</p>
+      <div class="field">
+        <label id="lblEmpId">Employee ID</label>
+        <input id="empId" type="text" placeholder="MBC-1042">
+      </div>
+      <div class="field">
+        <label id="lblEmpIdConfirm">Re-enter Employee ID</label>
+        <input id="empIdConfirm" type="text" placeholder="MBC-1042">
+      </div>
+      <button class="primary-btn" id="loginBtn" onclick="tryLogin()">Continue</button>
+      <p class="err" id="errMsg"></p>
+      <p class="hint" id="loginHint">Only Employee IDs registered by MBC can sign in.</p>
+    </div>
+
+    <!-- REGISTER SCREEN -->
+    <div id="registerView" class="hidden">
+      <div class="id-chip">🪪 <span id="idChipText"></span></div>
+      <p class="card-title" id="welcomeTitle">Welcome, Dear</p>
+      <p class="card-sub" id="step2Sub"></p>
+
+      <div class="photo-wrap">
+        <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onPhotoChosen(event)">
+        <div class="photo-circle" id="photoCircle" onclick="document.getElementById('photoInput').click()">📷</div>
+        <span class="photo-cap" id="photoLabel">Profile photo</span>
+      </div>
+
+      <div class="field"><label id="lblEmail">Email address</label><input id="emailInput" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label id="lblEmailConfirm">Re-enter email address</label><input id="emailConfirmInput" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label id="lblMobile">WhatsApp Number (Saudi)</label><input id="mobileInput" type="tel" placeholder="05XXXXXXXX"></div>
+      <div class="field"><label id="lblMobileConfirm">Re-enter WhatsApp Number</label><input id="mobileConfirmInput" type="tel" placeholder="05XXXXXXXX"></div>
+
+      <button class="primary-btn" id="submitBtn" onclick="trySubmit()">Save details</button>
+      <p class="err" id="regErrMsg"></p>
+    </div>
+  </div>
+
+  <footer id="footerNote">Modern Bus Company · Makkah</footer>
+</div></div>
+
+<script>
+const LANGS = [
+  {code:'en', label:'EN', rtl:false},
+  {code:'ur', label:'اردو', rtl:true},
+  {code:'ar', label:'العربية', rtl:true},
+  {code:'id', label:'Bahasa Indonesia', rtl:false},
+  {code:'hi', label:'हिं', rtl:false},
+];
+const T = {
+  en:{appName:"MBC Driver Portal",tagline:"Verified access for Modern Bus Company drivers",loginTitle:"Sign in",empId:"Employee ID",empIdPh:"MBC-1042",empIdConfirm:"Re-enter Employee ID",loginBtn:"Continue",loginHint:"Only Employee IDs registered by MBC can sign in.",welcomeDear:"Welcome, Dear {name}",step2Sub:"This information is saved against Employee ID {id}",photoLabel:"Profile photo",email:"Email address",emailConfirm:"Re-enter email address",mobile:"WhatsApp Number (Saudi)",mobileConfirm:"Re-enter WhatsApp Number",submit:"Save details",footer:"Modern Bus Company · Makkah",errNotFound:"Please check your Employee ID — this ID does not look correct.",errMismatch:"The two Employee ID entries do not match.",errEmailMismatch:"The two email addresses do not match. Please check and try again.",errMobileMismatch:"The two WhatsApp numbers do not match. Please check and try again.",savedMsg:"Saved successfully."},
+  ur:{appName:"ایم بی سی ڈرائیور پورٹل",tagline:"ماڈرن بس کمپنی کے ڈرائیورز کے لیے تصدیق شدہ رسائی",loginTitle:"لاگ ان کریں",empId:"ایمپلائی آئی ڈی",empIdPh:"MBC-1042",empIdConfirm:"ایمپلائی آئی ڈی دوبارہ درج کریں",loginBtn:"جاری رکھیں",loginHint:"صرف وہ ایمپلائی آئی ڈی جو MBC نے رجسٹر کی ہیں لاگ ان کر سکتی ہیں۔",welcomeDear:"خوش آمدید، پیارے {name}",step2Sub:"یہ معلومات ایمپلائی آئی ڈی {id} کے ساتھ محفوظ ہوں گی",photoLabel:"پروفائل تصویر",email:"ای میل ایڈریس",emailConfirm:"ای میل دوبارہ درج کریں",mobile:"واٹس ایپ نمبر (سعودی)",mobileConfirm:"واٹس ایپ نمبر دوبارہ درج کریں",submit:"تفصیلات محفوظ کریں",footer:"ماڈرن بس کمپنی · مکہ",errNotFound:"اپنی آئی ڈی پر غور کریں، یہ آئی ڈی غلط لگ رہی ہے۔",errMismatch:"دونوں دفعہ درج کی گئی آئی ڈی ایک جیسی نہیں ہیں۔",errEmailMismatch:"آپ کی ای میل میچ نہیں ہو رہی، دوبارہ چیک کریں۔",errMobileMismatch:"آپ کا نمبر میچ نہیں ہو رہا، دوبارہ چیک کریں۔",savedMsg:"کامیابی سے محفوظ ہو گیا۔"},
+  ar:{appName:"بوابة سائقي إم بي سي",tagline:"دخول موثّق لسائقي شركة الحافلات الحديثة",loginTitle:"تسجيل الدخول",empId:"رقم الموظف",empIdPh:"MBC-1042",empIdConfirm:"أعد إدخال رقم الموظف",loginBtn:"متابعة",loginHint:"يمكن فقط لأرقام الموظفين المسجّلة لدى الشركة تسجيل الدخول.",welcomeDear:"أهلاً وسهلاً، عزيزي {name}",step2Sub:"سيتم حفظ هذه المعلومات مع رقم الموظف {id}",photoLabel:"الصورة الشخصية",email:"البريد الإلكتروني",emailConfirm:"أعد إدخال البريد الإلكتروني",mobile:"رقم واتساب (السعودية)",mobileConfirm:"أعد إدخال رقم واتساب",submit:"حفظ البيانات",footer:"شركة الحافلات الحديثة · مكة",errNotFound:"يرجى مراجعة رقم موظفك، هذا الرقم يبدو غير صحيح.",errMismatch:"رقما الموظف المدخلان غير متطابقين.",errEmailMismatch:"البريدان الإلكترونيان غير متطابقين، يرجى التحقق مرة أخرى.",errMobileMismatch:"رقما واتساب غير متطابقين، يرجى التحقق مرة أخرى.",savedMsg:"تم الحفظ بنجاح."},
+  id:{appName:"Portal Sopir MBC",tagline:"Akses terverifikasi untuk sopir Modern Bus Company",loginTitle:"Masuk",empId:"ID Karyawan",empIdPh:"MBC-1042",empIdConfirm:"Masukkan ulang ID Karyawan",loginBtn:"Lanjutkan",loginHint:"Hanya ID Karyawan yang terdaftar di MBC yang bisa masuk.",welcomeDear:"Selamat datang, {name}",step2Sub:"Informasi ini disimpan untuk ID Karyawan {id}",photoLabel:"Foto profil",email:"Alamat email",emailConfirm:"Masukkan ulang email",mobile:"Nomor WhatsApp (Saudi)",mobileConfirm:"Masukkan ulang nomor WhatsApp",submit:"Simpan data",footer:"Modern Bus Company · Makkah",errNotFound:"Silakan periksa kembali ID Karyawan Anda, ID ini tampaknya salah.",errMismatch:"Kedua ID Karyawan yang dimasukkan tidak cocok.",errEmailMismatch:"Kedua alamat email tidak cocok. Silakan periksa kembali.",errMobileMismatch:"Kedua nomor WhatsApp tidak cocok. Silakan periksa kembali.",savedMsg:"Berhasil disimpan."},
+  hi:{appName:"एमबीसी ड्राइवर पोर्टल",tagline:"मॉडर्न बस कंपनी के ड्राइवरों के लिए सत्यापित पहुंच",loginTitle:"साइन इन करें",empId:"कर्मचारी आईडी",empIdPh:"MBC-1042",empIdConfirm:"कर्मचारी आईडी दोबारा दर्ज करें",loginBtn:"जारी रखें",loginHint:"केवल MBC में दर्ज कर्मचारी आईडी ही साइन इन कर सकती हैं।",welcomeDear:"स्वागत है, प्रिय {name}",step2Sub:"यह जानकारी कर्मचारी आईडी {id} के साथ सहेजी जाएगी",photoLabel:"प्रोफ़ाइल फोटो",email:"ईमेल पता",emailConfirm:"ईमेल दोबारा दर्ज करें",mobile:"व्हाट्सएप नंबर (सऊदी)",mobileConfirm:"व्हाट्सएप नंबर दोबारा दर्ज करें",submit:"जानकारी सहेजें",footer:"मॉडर्न बस कंपनी · मक्का",errNotFound:"अपनी कर्मचारी आईडी दोबारा देखें, यह आईडी गलत लग रही है।",errMismatch:"दर्ज की गई दोनों आईडी मेल नहीं खातीं।",errEmailMismatch:"आपका ईमेल मेल नहीं खा रहा, दोबारा जांचें।",errMobileMismatch:"आपका नंबर मेल नहीं खा रहा, दोबारा जांचें।",savedMsg:"सफलतापूर्वक सहेजा गया।"},
+};
+// Your deployed Apps Script Web App URL
+const API_URL = 'https://script.google.com/macros/s/AKfycbxJJ_BIOp4RffNmyJ9pS4IT8xKfi4ijHlPuGoWUxla8M7_rdPsrFobkf1Zd55U9UIrl/exec';
+let photoBase64 = null, photoMime = null, currentDriverName = '';
+let currentLang='en';
+
+function buildLangBar(){
+  const bar=document.getElementById('langbar'); bar.innerHTML='';
+  LANGS.forEach(l=>{
+    const b=document.createElement('button');
+    b.className='lang-btn'+(l.code===currentLang?' active':'');
+    b.textContent=l.label;
+    b.onclick=()=>setLang(l.code);
+    bar.appendChild(b);
+  });
+}
+function setLang(code){
+  currentLang=code;
+  const t=T[code]; const rtl = LANGS.find(l=>l.code===code).rtl;
+  const screen=document.getElementById('screen');
+  screen.dir = rtl?'rtl':'ltr';
+  screen.classList.toggle('rtl-font', rtl);
+  document.getElementById('appName').textContent=t.appName;
+  document.getElementById('tagline').textContent=t.tagline;
+  document.getElementById('loginTitle').textContent=t.loginTitle;
+  document.getElementById('lblEmpId').textContent=t.empId;
+  document.getElementById('empId').placeholder=t.empIdPh;
+  document.getElementById('lblEmpIdConfirm').textContent=t.empIdConfirm;
+  document.getElementById('empIdConfirm').placeholder=t.empIdPh;
+  document.getElementById('loginBtn').textContent=t.loginBtn;
+  document.getElementById('loginHint').textContent=t.loginHint;
+  document.getElementById('photoLabel').textContent=t.photoLabel;
+  document.getElementById('lblEmail').textContent=t.email;
+  document.getElementById('lblEmailConfirm').textContent=t.emailConfirm;
+  document.getElementById('lblMobile').textContent=t.mobile;
+  document.getElementById('lblMobileConfirm').textContent=t.mobileConfirm;
+  document.getElementById('submitBtn').textContent=t.submit;
+  document.getElementById('footerNote').textContent=t.footer;
+  const idVal=document.getElementById('empId').value.trim();
+  document.getElementById('step2Sub').textContent=t.step2Sub.replace('{id}', idVal||'—');
+  document.getElementById('welcomeTitle').textContent=t.welcomeDear.replace('{name}', currentDriverName);
+  document.getElementById('idChipText').textContent=idVal;
+  buildLangBar();
+}
+function onPhotoChosen(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  photoMime = file.type;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    photoBase64 = e.target.result;
+    document.getElementById('photoCircle').style.backgroundImage = `url(${photoBase64})`;
+    document.getElementById('photoCircle').style.backgroundSize = 'cover';
+    document.getElementById('photoCircle').style.backgroundPosition = 'center';
+    document.getElementById('photoCircle').textContent = '';
+  };
+  reader.readAsDataURL(file);
+}
+async function tryLogin(){
+  const t=T[currentLang];
+  const id=document.getElementById('empId').value.trim();
+  const id2=document.getElementById('empIdConfirm').value.trim();
+  const errEl=document.getElementById('errMsg');
+  const btn=document.getElementById('loginBtn');
+  if(id!==id2){ errEl.style.color='var(--danger)'; errEl.textContent=t.errMismatch; errEl.style.display='block'; return; }
+  if(!id){ return; }
+  const originalLabel=btn.textContent;
+  btn.textContent='...'; btn.disabled=true;
+  try{
+    const res = await fetch(`${API_URL}?action=checkId&id=${encodeURIComponent(id)}`);
+    const data = await res.json();
+    if(!data.found){
+      errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
+      return;
+    }
+    errEl.style.display='none';
+    currentDriverName = data.name;
+    document.getElementById('loginView').classList.add('hidden');
+    document.getElementById('registerView').classList.remove('hidden');
+    document.getElementById('idChipText').textContent=id;
+    document.getElementById('step2Sub').textContent=t.step2Sub.replace('{id}', id);
+    document.getElementById('welcomeTitle').textContent=t.welcomeDear.replace('{name}', currentDriverName);
+  }catch(err){
+    errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
+  }finally{
+    btn.textContent=originalLabel; btn.disabled=false;
+  }
+}
+async function trySubmit(){
+  const t=T[currentLang];
+  const id=document.getElementById('empId').value.trim();
+  const email=document.getElementById('emailInput').value.trim();
+  const email2=document.getElementById('emailConfirmInput').value.trim();
+  const mobile=document.getElementById('mobileInput').value.trim();
+  const mobile2=document.getElementById('mobileConfirmInput').value.trim();
+  const errEl=document.getElementById('regErrMsg');
+  const btn=document.getElementById('submitBtn');
+  if(email!==email2){ errEl.style.color='var(--danger)'; errEl.textContent=t.errEmailMismatch; errEl.style.display='block'; return; }
+  if(mobile!==mobile2){ errEl.style.color='var(--danger)'; errEl.textContent=t.errMobileMismatch; errEl.style.display='block'; return; }
+  const originalLabel=btn.textContent;
+  btn.textContent='...'; btn.disabled=true;
+  try{
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action:'submit', id, email, mobile, photoBase64, photoMime })
+    });
+    const data = await res.json();
+    if(data.success){
+      errEl.style.color='var(--ok)'; errEl.textContent=t.savedMsg; errEl.style.display='block';
+    }else{
+      errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
+    }
+  }catch(err){
+    errEl.style.color='var(--danger)'; errEl.textContent=t.errNotFound; errEl.style.display='block';
+  }finally{
+    btn.textContent=originalLabel; btn.disabled=false;
+  }
+}
+buildLangBar(); setLang('en');
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
